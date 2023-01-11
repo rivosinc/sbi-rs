@@ -8,6 +8,10 @@ pub mod debug_console;
 /// Host interfaces for reset extension.
 pub mod reset;
 
+/// Host interfaces for local rivos testing.
+#[cfg(all(target_arch = "riscv64", target_os = "none"))]
+pub mod rivos_test;
+
 /// Host interfaces for hart state management.
 pub mod state;
 
