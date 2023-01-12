@@ -43,6 +43,10 @@ pub use tee_guest::*;
 mod pmu;
 pub use pmu::*;
 
+// The Vendor SBI extension
+mod vendor;
+pub use vendor::*;
+
 /// Interfaces for invoking SBI functionality.
 pub mod api;
 
@@ -130,6 +134,8 @@ pub enum SbiMessage {
     Attestation(AttestationFunction),
     /// The extension for getting performance counter state.
     Pmu(PmuFunction),
+    /// The extension for making vendor-specific calls.
+    Vendor(VendorFunction),
 }
 
 impl SbiMessage {
@@ -151,6 +157,7 @@ impl SbiMessage {
             EXT_TEE_GUEST => TeeGuestFunction::from_regs(args).map(SbiMessage::TeeGuest),
             EXT_ATTESTATION => AttestationFunction::from_regs(args).map(SbiMessage::Attestation),
             EXT_PMU => PmuFunction::from_regs(args).map(SbiMessage::Pmu),
+            EXT_VENDOR_RANGE_START..=EXT_VENDOR_RANGE_END => VendorFunction::from_regs(args).map(SbiMessage::Vendor),
             _ => Err(Error::NotSupported),
         }
     }
@@ -170,6 +177,7 @@ impl SbiMessage {
             TeeGuest(_) => EXT_TEE_GUEST,
             Attestation(_) => EXT_ATTESTATION,
             Pmu(_) => EXT_PMU,
+            Vendor(_) => EXT_VENDOR_RANGE_END,
         }
     }
 
@@ -190,6 +198,7 @@ impl SbiMessage {
             TeeGuest(f) => f.a6(),
             Attestation(f) => f.a6(),
             Pmu(f) => f.a6(),
+            Vendor(f) => f.a6(),
         }
     }
 
@@ -208,6 +217,7 @@ impl SbiMessage {
             TeeGuest(f) => f.a5(),
             Attestation(f) => f.a5(),
             Pmu(f) => f.a5(),
+            Vendor(f) => f.a5(),
         }
     }
 
@@ -226,6 +236,7 @@ impl SbiMessage {
             TeeGuest(f) => f.a4(),
             Attestation(f) => f.a4(),
             Pmu(f) => f.a4(),
+            Vendor(f) => f.a4(),
         }
     }
 
@@ -244,6 +255,7 @@ impl SbiMessage {
             TeeGuest(f) => f.a3(),
             Attestation(f) => f.a3(),
             Pmu(f) => f.a3(),
+            Vendor(f) => f.a3(),
         }
     }
 
@@ -262,6 +274,7 @@ impl SbiMessage {
             TeeGuest(f) => f.a2(),
             Attestation(f) => f.a2(),
             Pmu(f) => f.a2(),
+            Vendor(f) => f.a2(),
         }
     }
 
@@ -280,6 +293,7 @@ impl SbiMessage {
             TeeGuest(f) => f.a1(),
             Attestation(f) => f.a1(),
             Pmu(f) => f.a1(),
+            Vendor(f) => f.a1(),
         }
     }
 
@@ -298,6 +312,7 @@ impl SbiMessage {
             TeeGuest(f) => f.a0(),
             Attestation(f) => f.a0(),
             Pmu(f) => f.a0(),
+            Vendor(f) => f.a0(),
         }
     }
 
