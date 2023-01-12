@@ -287,7 +287,7 @@ pub enum TeeHostFunction {
     ///
     /// vCPUs may not be added after the TVM is finalized.
     ///
-    /// a6 = 15
+    /// a6 = 13
     TvmCpuCreate {
         /// a0 = guest id
         guest_id: u64,
@@ -326,7 +326,7 @@ pub enum TeeHostFunction {
     ///   - if hardware AIA virtualization is enabled for the TVM and the vCPU is not bound to
     ///     this physical CPU
     ///
-    /// a6 = 16
+    /// a6 = 14
     TvmCpuRun {
         /// a0 = guest id
         guest_id: u64,
@@ -340,7 +340,7 @@ pub enum TeeHostFunction {
     /// cause by IPI'ing the physical CPUs on which the TVM's vCPUs are running. An error is
     /// returned if a TLB invalidation sequence is already in progress for the TVM.
     ///
-    /// a6 = 17
+    /// a6 = 15
     TvmInitiateFence {
         /// a0 = guest id
         guest_id: u64,
@@ -408,16 +408,16 @@ impl TeeHostFunction {
                 num_pages: args[3],
                 guest_addr: args[4],
             }),
-            15 => Ok(TvmCpuCreate {
+            13 => Ok(TvmCpuCreate {
                 guest_id: args[0],
                 vcpu_id: args[1],
                 state_page_addr: args[2],
             }),
-            16 => Ok(TvmCpuRun {
+            14 => Ok(TvmCpuRun {
                 guest_id: args[0],
                 vcpu_id: args[1],
             }),
-            17 => Ok(TvmInitiateFence { guest_id: args[0] }),
+            15 => Ok(TvmInitiateFence { guest_id: args[0] }),
             _ => Err(Error::NotSupported),
         }
     }
@@ -487,12 +487,12 @@ impl SbiFunction for TeeHostFunction {
                 guest_id: _,
                 vcpu_id: _,
                 state_page_addr: _,
-            } => 15,
+            } => 13,
             TvmCpuRun {
                 guest_id: _,
                 vcpu_id: _,
-            } => 16,
-            TvmInitiateFence { guest_id: _ } => 17,
+            } => 14,
+            TvmInitiateFence { guest_id: _ } => 15,
         }
     }
 
