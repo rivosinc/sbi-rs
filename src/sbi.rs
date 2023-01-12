@@ -340,7 +340,7 @@ impl SbiMessage {
     }
 }
 
-/// Send an ecall to the firmware or hypervisor.
+/// Sends an ecall to the firmware or hypervisor.
 ///
 /// # Safety
 ///
