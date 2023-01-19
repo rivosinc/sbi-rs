@@ -17,5 +17,8 @@ pub const EXT_TEE_HOST: u64 = 0x54454548; // TEEH
 pub const EXT_TEE_INTERRUPT: u64 = 0x54454549; // TEEI
 pub const EXT_TEE_GUEST: u64 = 0x54454547; // TEEG
 
+pub const EXT_VENDOR_RANGE_START: u64 = 0x09000000;
+pub const EXT_VENDOR_RANGE_END: u64 = 0x09FFFFFF;
+
 pub const SBI_SUCCESS: i64 = 0;
 pub const SBI_ERR_INVALID_ADDRESS: i64 = -5;
