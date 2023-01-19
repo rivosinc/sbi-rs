@@ -366,6 +366,11 @@ pub unsafe fn ecall_send(msg: &SbiMessage) -> Result<u64> {
 }
 
 #[cfg(not(all(target_arch = "riscv64", target_os = "none")))]
-unsafe fn ecall_send(_msg: &SbiMessage) -> Result<u64> {
+/// Test Compilation only.
+///
+/// # Safety
+///
+/// Test-only. Do not call.
+pub unsafe fn ecall_send(_msg: &SbiMessage) -> Result<u64> {
     panic!("ecall_send called");
 }
