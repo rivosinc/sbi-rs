@@ -43,6 +43,9 @@ pub use tee_guest::*;
 mod pmu;
 pub use pmu::*;
 
+/// Salus SBI Vendor Extensions.
+pub mod salus;
+
 /// Interfaces for invoking SBI functionality.
 pub mod api;
 
