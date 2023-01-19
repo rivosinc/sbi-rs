@@ -250,11 +250,11 @@ impl TeeInterruptFunction {
                 vcpu_id: args[1],
                 imsic_mask: args[2],
             }),
-            9 => Ok(TvmCpuRebindImsicEnd {
+            9 => Ok(TvmCpuRebindImsicClone {
                 tvm_id: args[0],
                 vcpu_id: args[1],
             }),
-            10 => Ok(TvmCpuRebindImsicClone {
+            10 => Ok(TvmCpuRebindImsicEnd {
                 tvm_id: args[0],
                 vcpu_id: args[1],
             }),
@@ -276,8 +276,8 @@ impl SbiFunction for TeeInterruptFunction {
             TvmCpuUnbindImsicEnd { .. } => 6,
             TvmCpuInjectExternalInterrupt { .. } => 7,
             TvmCpuRebindImsicBegin { .. } => 8,
-            TvmCpuRebindImsicEnd { .. } => 9,
-            TvmCpuRebindImsicClone { .. } => 10,
+            TvmCpuRebindImsicClone { .. } => 9,
+            TvmCpuRebindImsicEnd { .. } => 10,
         }
     }
 
