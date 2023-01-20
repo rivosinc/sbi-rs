@@ -9,6 +9,7 @@ use crate::function::*;
 pub const NACL_SCRATCH_BYTES: usize = 2048;
 
 /// Layout of the shared-memory area registered with `SetShmem`.
+#[repr(C)]
 pub struct NaclShmem {
     /// Scratch space. The layout of this scratch space is defined by the particular function being
     /// invoked.
