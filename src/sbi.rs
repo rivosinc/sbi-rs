@@ -43,6 +43,9 @@ pub use tee_guest::*;
 mod pmu;
 pub use pmu::*;
 
+/// Salus SBI Vendor Extensions.
+pub mod salus;
+
 /// Interfaces for invoking SBI functionality.
 pub mod api;
 
@@ -130,6 +133,8 @@ pub enum SbiMessage {
     Attestation(AttestationFunction),
     /// The extension for getting performance counter state.
     Pmu(PmuFunction),
+    /// Vendor extensions.
+    Vendor([u64; 8]),
 }
 
 impl SbiMessage {
@@ -151,6 +156,9 @@ impl SbiMessage {
             EXT_TEE_GUEST => TeeGuestFunction::from_regs(args).map(SbiMessage::TeeGuest),
             EXT_ATTESTATION => AttestationFunction::from_regs(args).map(SbiMessage::Attestation),
             EXT_PMU => PmuFunction::from_regs(args).map(SbiMessage::Pmu),
+            EXT_VENDOR_RANGE_START..=EXT_VENDOR_RANGE_END => Ok(SbiMessage::Vendor(
+                args.try_into().map_err(|_| Error::Failed)?,
+            )),
             _ => Err(Error::NotSupported),
         }
     }
@@ -170,6 +178,7 @@ impl SbiMessage {
             TeeGuest(_) => EXT_TEE_GUEST,
             Attestation(_) => EXT_ATTESTATION,
             Pmu(_) => EXT_PMU,
+            Vendor(regs) => regs[7],
         }
     }
 
@@ -190,6 +199,7 @@ impl SbiMessage {
             TeeGuest(f) => f.a6(),
             Attestation(f) => f.a6(),
             Pmu(f) => f.a6(),
+            Vendor(regs) => regs[6],
         }
     }
 
@@ -208,6 +218,7 @@ impl SbiMessage {
             TeeGuest(f) => f.a5(),
             Attestation(f) => f.a5(),
             Pmu(f) => f.a5(),
+            Vendor(regs) => regs[5],
         }
     }
 
@@ -226,6 +237,7 @@ impl SbiMessage {
             TeeGuest(f) => f.a4(),
             Attestation(f) => f.a4(),
             Pmu(f) => f.a4(),
+            Vendor(regs) => regs[4],
         }
     }
 
@@ -244,6 +256,7 @@ impl SbiMessage {
             TeeGuest(f) => f.a3(),
             Attestation(f) => f.a3(),
             Pmu(f) => f.a3(),
+            Vendor(regs) => regs[3],
         }
     }
 
@@ -262,6 +275,7 @@ impl SbiMessage {
             TeeGuest(f) => f.a2(),
             Attestation(f) => f.a2(),
             Pmu(f) => f.a2(),
+            Vendor(regs) => regs[2],
         }
     }
 
@@ -280,6 +294,7 @@ impl SbiMessage {
             TeeGuest(f) => f.a1(),
             Attestation(f) => f.a1(),
             Pmu(f) => f.a1(),
+            Vendor(regs) => regs[1],
         }
     }
 
@@ -298,6 +313,7 @@ impl SbiMessage {
             TeeGuest(f) => f.a0(),
             Attestation(f) => f.a0(),
             Pmu(f) => f.a0(),
+            Vendor(regs) => regs[0],
         }
     }
 
@@ -340,7 +356,7 @@ impl SbiMessage {
     }
 }
 
-/// Send an ecall to the firmware or hypervisor.
+/// Sends an ecall to the firmware or hypervisor.
 ///
 /// # Safety
 ///
@@ -366,6 +382,11 @@ pub unsafe fn ecall_send(msg: &SbiMessage) -> Result<u64> {
 }
 
 #[cfg(not(all(target_arch = "riscv64", target_os = "none")))]
-unsafe fn ecall_send(_msg: &SbiMessage) -> Result<u64> {
+/// Test Compilation only.
+///
+/// # Safety
+///
+/// Test-only. Do not call.
+pub unsafe fn ecall_send(_msg: &SbiMessage) -> Result<u64> {
     panic!("ecall_send called");
 }

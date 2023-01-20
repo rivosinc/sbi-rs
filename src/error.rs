@@ -47,5 +47,5 @@ impl Error {
     }
 }
 
-/// Holds the result of a TEE operation.
+/// Holds the result of a SBI operation.
 pub type Result<T> = core::result::Result<T, Error>;
