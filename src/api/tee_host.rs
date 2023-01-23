@@ -85,6 +85,14 @@ pub fn tsm_initiate_fence() -> Result<()> {
     Ok(())
 }
 
+/// Performs a fence on this CPU.
+pub fn tsm_local_fence() -> Result<()> {
+    let msg = SbiMessage::TeeHost(TsmLocalFence);
+    // Safety: TsmLocalFence doesn't read or write any memory we have access to.
+    unsafe { ecall_send(&msg) }?;
+    Ok(())
+}
+
 /// Initiates a fence for the given TVM.
 pub fn tvm_initiate_fence(vmid: u64) -> Result<()> {
     let msg = SbiMessage::TeeHost(TvmInitiateFence { guest_id: vmid });
