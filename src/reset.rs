@@ -60,7 +60,7 @@ impl ResetReason {
         use ResetReason::*;
         Ok(match a1 {
             0 => NoReason,
-            2 => SystemFailure,
+            1 => SystemFailure,
             _ => return Err(Error::InvalidParam),
         })
     }
