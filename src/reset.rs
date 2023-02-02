@@ -93,18 +93,80 @@ impl SbiFunction for ResetFunction {
     fn a0(&self) -> u64 {
         match self {
             ResetFunction::Reset {
-                reset_type: _,
-                reason,
-            } => *reason as u64,
+                reset_type,
+                reason: _,
+            } => *reset_type as u64,
         }
     }
 
     fn a1(&self) -> u64 {
         match self {
             ResetFunction::Reset {
-                reset_type,
-                reason: _,
-            } => *reset_type as u64,
+                reset_type: _,
+                reason,
+            } => *reason as u64,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn shutdown_systemfailure() {
+        let reset = ResetFunction::Reset {
+            reset_type: ResetType::Shutdown,
+            reason: ResetReason::SystemFailure,
+        };
+
+        assert_eq!(reset.a0(), 0); // a0 = Shutdown (0x00000000)
+        assert_eq!(reset.a1(), 1); // a1 = System failure (0x00000001)
+        assert_eq!(reset.a6(), 0); // a6 = function id 0
+    }
+
+    #[test]
+    fn shutdown_noreason() {
+        let reset = ResetFunction::Reset {
+            reset_type: ResetType::Shutdown,
+            reason: ResetReason::NoReason,
+        };
+
+        assert_eq!(reset.a0(), 0); // a0 = Shutdown (0x00000000)
+        assert_eq!(reset.a1(), 0); // a1 = No reason (0x00000000)
+        assert_eq!(reset.a6(), 0); // a6 = function id 0
+    }
+
+    #[test]
+    fn coldreset_noreason() {
+        let reset = ResetFunction::Reset {
+            reset_type: ResetType::ColdReset,
+            reason: ResetReason::NoReason,
+        };
+
+        assert_eq!(reset.a0(), 1); // a0 = Cold reboot (0x00000001)
+        assert_eq!(reset.a1(), 0); // a1 = No reason (0x00000000)
+        assert_eq!(reset.a6(), 0); // a6 = function id 0
+    }
+
+    #[test]
+    fn warmreset_noreason() {
+        let reset = ResetFunction::Reset {
+            reset_type: ResetType::WarmReset,
+            reason: ResetReason::NoReason,
+        };
+
+        assert_eq!(reset.a0(), 2); // a0 = Warm reboot (0x00000002)
+        assert_eq!(reset.a1(), 0); // a1 = No reason (0x00000000)
+        assert_eq!(reset.a6(), 0); // a6 = function id 0
+    }
+
+    #[test]
+    fn shutdown() {
+        let reset = ResetFunction::shutdown();
+
+        assert_eq!(reset.a0(), 0); // a0 = Shutdown (0x00000000)
+        assert_eq!(reset.a1(), 0); // a1 = No reason (0x00000000)
+        assert_eq!(reset.a6(), 0); // a6 = function id 0
     }
 }
