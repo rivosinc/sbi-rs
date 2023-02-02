@@ -11,7 +11,8 @@ mod consts;
 pub use consts::*;
 mod debug_console;
 pub use debug_console::*;
-mod error;
+/// Error types encapsulating SBI error codes
+pub mod error;
 pub use error::*;
 mod function;
 pub use function::*;
