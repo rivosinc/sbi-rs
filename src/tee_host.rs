@@ -345,6 +345,154 @@ pub enum TeeHostFunction {
         /// a0 = guest id
         guest_id: u64,
     },
+    /// Invalidates the pages in the specified range of guest physical address space.
+    ///
+    /// For each page in the range, the TSM verifies that:
+    ///   - The page is currently marked present in the TVM’s page table.
+    ///   - The page is in either the “Mapped” state and uniquely owned by the TVM, or in
+    ///     the “Shared” state and owned by the host.
+    /// After verifying these pre-conditions are met, the TSM:
+    ///   - Invalidates the page.
+    ///   - Places the page in the “Blocked” state (if “Mapped”) or “BlockedShared” state
+    ///     (if “Shared”) and records the TVM TLB version at which the page was invalidated.
+    ///     If the page was “Shared”, the reference count of the page is recorded as well.
+    ///
+    /// Guest page faults taken by the TVM on blocked pages continue to be reported to the
+    /// host. The page remains invalid until the mapping is unblocked (marked present),
+    /// removed, or part of a huge page promotion/demotion operation.
+    ///
+    /// Returns 0 on success.
+    ///
+    /// a6 = 16
+    TvmBlockPages {
+        /// a0 = guest_id   
+        guest_id: u64,
+        /// a1 = guest physical address
+        guest_addr: u64,
+        /// a2 = length of the range
+        len: u64,
+    },
+    /// Marks the invalidated pages in the specified range of guest physical address space
+    /// as present.
+    ///  
+    /// For each page in the range, the TSM verifies that:
+    ///   - The page is currently marked invalid in the TVM’s page table.
+    ///   - The page is in either the “Blocked” state and uniquely owned by the TVM, or in
+    ///     the “BlockedShared” state and owned by the host.
+    /// After verifying these pre-conditions are met, the TSM:
+    ///   - Marks the page as present.
+    ///   - Places the page in the “Mapped” state (if “Blocked”) or “Shared” state
+    ///     (if “BlockedShared”). If the page was “BlockedShared”, the reference count
+    ///     of the page is restored.
+    ///
+    /// Unblock may be used to revert an in-progress page removal or huge page
+    /// promotion/demotion sequence.
+    ///
+    /// Returns 0 on success.
+    ///
+    /// a6 = 17
+    TvmUnblockPages {
+        /// a0 = guest_id   
+        guest_id: u64,
+        /// a1 = guest physical address
+        guest_addr: u64,
+        /// a2 = length of the range
+        len: u64,
+    },
+    /// Promotes a set of contiguous mappings to the requested page size.
+    ///
+    /// For each sub page of the requested huge page mapping, the TSM verifies that:
+    ///   - The page is currently marked invalid in the TVM’s page table and has a size one
+    ///     smaller than the requested page size (e.g. 4kB if requested size is 2MB).
+    ///   - The pages are physically contiguous and suitably aligned to the requested huge
+    ///     page size.
+    ///   - The pages are all in the same state, either the “Blocked” state and uniquely owned
+    ///     by the TVM, or in the “BlockedShared” state and owned by the host.
+    ///   - The TLB version at which the page was invalidated is older than the TVM’s current
+    ///     TLB version.
+    ///
+    /// After verifying these pre-conditions are met, the TSM:
+    ///   - Promotes the non-leaf PTE mapping the huge page to a leaf PTE with the PFN of the
+    ///     huge page and marks it as present.
+    ///   - Returns the now-unused page-table page to the TVM’s page-table page pool.
+    ///   - Places all the sub-pages in the “Mapped” state (if “Blocked”) or “Shared” state
+    ///     (if “BlockedShared”). If the page was “BlockedShared”, the reference count of the
+    ///     page is restored.
+    ///
+    /// Returns 0 on success.
+    ///
+    /// a6 = 18
+    TvmPromotePage {
+        /// a0 = guest_id   
+        guest_id: u64,
+        /// a1 = guest physical address
+        guest_addr: u64,
+        /// a2 = page size
+        page_type: TsmPageType,
+    },
+    /// Demotes a huge page mapping to a set of contiguous mappings at the target size.
+    ///
+    /// The TSM verifies that:
+    ///   - The page is currently marked invalid in the TVM’s page table and has a size one
+    ///     larger than the requested page size (e.g. 2MB if requested size is 4kB).
+    ///   - The page is in either the “Blocked” state and uniquely owned by the TVM, or in
+    ///     the “BlockedShared” state and owned by the host.
+    ///   - The TLB version at which the page was invalidated is older than the TVM’s current
+    ///     TLB version.
+    ///   - There is a free page in the TVM’s page-table page pool.
+    ///
+    /// After verifying these pre-conditions are met, the TSM:
+    ///   - Allocates and fills in a page-table page mapping the sub-pages of the huge page
+    ///     to be split, marking each PTE as present.
+    ///   - Installs a non-leaf PTE pointing the newly-allocated page-table page in place of
+    ///     the huge-page leaf PTE.
+    ///   - Places all the sub-pages in the “Mapped” state (if “Blocked”) or “Shared” state
+    ///     (if “BlockedShared”). If the page was “BlockedShared”, the reference count of the
+    ///     page is restored.
+    ///
+    /// Returns 0 on success.
+    ///
+    /// a6 = 19
+    TvmDemotePage {
+        /// a0 = guest_id   
+        guest_id: u64,
+        /// a1 = guest physical address
+        guest_addr: u64,
+        /// a2 = page size
+        page_type: TsmPageType,
+    },
+    /// Removes mappings from a TVM. The range to be unmapped must already have been invalidated
+    /// and fenced, and must lie within a removable region of guest physical address space.
+    ///
+    /// A region of guest physical address space is in a removable state if the guest previously
+    /// invoked ShareMemory or UnshareMemory from the TEE-Guest interface, and that it marked the
+    /// region as "ConfidentialRemovable" or "SharedRemovable".
+    ///
+    /// The TSM verifies that:
+    ///   - All pages within the requested range are invalidated, and are in the “Blocked” or
+    ///     “BlockedShared” state.
+    ///   - The TLB version at which the pages were invalidated is older than the TVM’s current
+    ///     TLB version.
+    ///   - The address range lies within a removable (“SharedRemovable” or “ConfidentialRemovable”)
+    ///     region of guest physical address space.
+    ///
+    /// After verifying these pre-conditions are met, the TSM:
+    ///   - Clears (zeros out) all PTEs within the specified range.
+    ///   - Places each page in either the “Converted” state, with ownership returned to the host
+    ///     (if previously “Blocked”) or the “Shared” state, with the reference count decremented
+    ///     (if previously “BlockedShared”).
+    ///
+    /// Returns 0 on success.
+    ///
+    /// a6 = 20
+    TvmRemovePages {
+        /// a0 = guest_id   
+        guest_id: u64,
+        /// a1 = guest physical address
+        guest_addr: u64,
+        /// a2 = length of the range
+        len: u64,
+    },
 }
 
 impl TeeHostFunction {
@@ -418,6 +566,31 @@ impl TeeHostFunction {
                 vcpu_id: args[1],
             }),
             15 => Ok(TvmInitiateFence { guest_id: args[0] }),
+            16 => Ok(TvmBlockPages {
+                guest_id: args[0],
+                guest_addr: args[1],
+                len: args[2],
+            }),
+            17 => Ok(TvmUnblockPages {
+                guest_id: args[0],
+                guest_addr: args[1],
+                len: args[2],
+            }),
+            18 => Ok(TvmPromotePage {
+                guest_id: args[0],
+                guest_addr: args[1],
+                page_type: TsmPageType::from_reg(args[2])?,
+            }),
+            19 => Ok(TvmDemotePage {
+                guest_id: args[0],
+                guest_addr: args[1],
+                page_type: TsmPageType::from_reg(args[2])?,
+            }),
+            20 => Ok(TvmRemovePages {
+                guest_id: args[0],
+                guest_addr: args[1],
+                len: args[2],
+            }),
             _ => Err(Error::NotSupported),
         }
     }
@@ -493,6 +666,31 @@ impl SbiFunction for TeeHostFunction {
                 vcpu_id: _,
             } => 14,
             TvmInitiateFence { guest_id: _ } => 15,
+            TvmBlockPages {
+                guest_id: _,
+                guest_addr: _,
+                len: _,
+            } => 16,
+            TvmUnblockPages {
+                guest_id: _,
+                guest_addr: _,
+                len: _,
+            } => 17,
+            TvmPromotePage {
+                guest_id: _,
+                guest_addr: _,
+                page_type: _,
+            } => 18,
+            TvmDemotePage {
+                guest_id: _,
+                guest_addr: _,
+                page_type: _,
+            } => 19,
+            TvmRemovePages {
+                guest_id: _,
+                guest_addr: _,
+                len: _,
+            } => 20,
         }
     }
 
@@ -560,6 +758,31 @@ impl SbiFunction for TeeHostFunction {
                 guest_addr: _,
             } => *guest_id,
             TvmInitiateFence { guest_id } => *guest_id,
+            TvmBlockPages {
+                guest_id,
+                guest_addr: _,
+                len: _,
+            } => *guest_id,
+            TvmUnblockPages {
+                guest_id,
+                guest_addr: _,
+                len: _,
+            } => *guest_id,
+            TvmPromotePage {
+                guest_id,
+                guest_addr: _,
+                page_type: _,
+            } => *guest_id,
+            TvmDemotePage {
+                guest_id,
+                guest_addr: _,
+                page_type: _,
+            } => *guest_id,
+            TvmRemovePages {
+                guest_id,
+                guest_addr: _,
+                len: _,
+            } => *guest_id,
             _ => 0,
         }
     }
@@ -626,6 +849,31 @@ impl SbiFunction for TeeHostFunction {
                 num_pages: _,
                 guest_addr: _,
             } => *page_addr,
+            TvmBlockPages {
+                guest_id: _,
+                guest_addr,
+                len: _,
+            } => *guest_addr,
+            TvmUnblockPages {
+                guest_id: _,
+                guest_addr,
+                len: _,
+            } => *guest_addr,
+            TvmPromotePage {
+                guest_id: _,
+                guest_addr,
+                page_type: _,
+            } => *guest_addr,
+            TvmDemotePage {
+                guest_id: _,
+                guest_addr,
+                page_type: _,
+            } => *guest_addr,
+            TvmRemovePages {
+                guest_id: _,
+                guest_addr,
+                len: _,
+            } => *guest_addr,
             _ => 0,
         }
     }
@@ -675,6 +923,31 @@ impl SbiFunction for TeeHostFunction {
                 num_pages: _,
                 guest_addr: _,
             } => *page_type as u64,
+            TvmBlockPages {
+                guest_id: _,
+                guest_addr: _,
+                len,
+            } => *len,
+            TvmUnblockPages {
+                guest_id: _,
+                guest_addr: _,
+                len,
+            } => *len,
+            TvmPromotePage {
+                guest_id: _,
+                guest_addr: _,
+                page_type,
+            } => *page_type as u64,
+            TvmDemotePage {
+                guest_id: _,
+                guest_addr: _,
+                page_type,
+            } => *page_type as u64,
+            TvmRemovePages {
+                guest_id: _,
+                guest_addr: _,
+                len,
+            } => *len,
             _ => 0,
         }
     }

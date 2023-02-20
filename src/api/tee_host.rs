@@ -321,3 +321,64 @@ pub unsafe fn add_shared_pages(
     ecall_send(&msg)?;
     Ok(())
 }
+
+/// Invalidates the pages in the specified range of guest physical address space.
+pub fn block_pages(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
+    let msg = SbiMessage::TeeHost(TvmBlockPages {
+        guest_id: vmid,
+        guest_addr,
+        len,
+    });
+    // Safety: The pages belong to the guest's address space.
+    unsafe { ecall_send(&msg) }?;
+    Ok(())
+}
+
+/// Marks the invalidated pages in the specified range of guest physical address
+/// space as present.
+pub fn unblock_pages(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
+    let msg = SbiMessage::TeeHost(TvmUnblockPages {
+        guest_id: vmid,
+        guest_addr,
+        len,
+    });
+    // Safety: The pages belong to the guest's address space.
+    unsafe { ecall_send(&msg) }?;
+    Ok(())
+}
+
+/// Promotes a set of contiguous mappings to the requested page size.
+pub fn promote_page(vmid: u64, guest_addr: u64, page_type: TsmPageType) -> Result<()> {
+    let msg = SbiMessage::TeeHost(TvmPromotePage {
+        guest_id: vmid,
+        guest_addr,
+        page_type,
+    });
+    // Safety: The pages belong to the guest's address space.
+    unsafe { ecall_send(&msg) }?;
+    Ok(())
+}
+
+/// Demotes a huge page mapping to a set of contiguous mappings at the target size.
+pub fn demote_page(vmid: u64, guest_addr: u64, page_type: TsmPageType) -> Result<()> {
+    let msg = SbiMessage::TeeHost(TvmDemotePage {
+        guest_id: vmid,
+        guest_addr,
+        page_type,
+    });
+    // Safety: The pages belong to the guest's address space.
+    unsafe { ecall_send(&msg) }?;
+    Ok(())
+}
+
+/// Removes mappings from a TVM.
+pub fn removes_pages(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
+    let msg = SbiMessage::TeeHost(TvmRemovePages {
+        guest_id: vmid,
+        guest_addr,
+        len,
+    });
+    // Safety: The pages belong to the guest's address space.
+    unsafe { ecall_send(&msg) }?;
+    Ok(())
+}
