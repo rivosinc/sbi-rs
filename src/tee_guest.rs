@@ -35,12 +35,27 @@ pub enum TeeGuestFunction {
         len: u64,
     },
     /// Requests conversion of the specified range of guest physical address space from confidential
-    /// to shared. The caller is blocked until the host has completed the invalidation and removal
-    /// of any confidential pages that were mapped into the region. Upon return, all accesses by
-    /// the TVM within the range are guaranteed to be to shared memory.
+    /// to shared.
     ///
-    /// Both `addr` and `len` must be 4kB-aligned, and the range must lie within an existing region
-    /// of confidential memory. Returns 0 on success.
+    /// The caller is blocked until the host has completed the invalidation and removal of any
+    /// confidential pages that were mapped into the region. Upon return, all accesses by the
+    /// TVM within the range are guaranteed to be to shared memory.
+    ///
+    /// Upon verifying that the range falls completely within a region of confidential memory, the
+    /// TSM marks the region as being Confidential-Removable and exits to the host. The host is
+    /// then expected to either complete the memory sharing request, or reject it with an error.
+    ///
+    /// In order to complete the memory sharing request, the host must remove any pages currently
+    /// mapped in the region to be converted and run the calling TVM vCPU with A0 set to 0 in the
+    /// TSM shared memory area. The TSM will then verify that the page removal has been successfully
+    /// completed and will mark the region as shared. Otherwise an error is returned to the host.
+    ///
+    /// If the host wishes to reject the request, it must run the TVM vCPU with A0 set to a non-zero
+    /// value in the TSM shared memory area. The TSM will mark the region as non-removable and
+    /// forward the error code to the TVM.
+    ///
+    /// Both `addr` and `len` must be page aligned, and the range must lie within an existing region
+    /// of confidential memory.
     ///
     /// a6 = 2
     ShareMemory {
@@ -50,12 +65,28 @@ pub enum TeeGuestFunction {
         len: u64,
     },
     /// Requests conversion of the specified range of guest physical address space from shared to
-    /// confidential. The caller is blocked until the host has completed the invalidation and
-    /// removal of any shared pages that were mapped into the region. Upon return, all accesses by
-    /// the TVM within the range are guaranteed to be to confidential memory.
+    /// confidential.
     ///
-    /// Both `addr` and `len` must be 4kB-aligned, and the range must lie within an existing region
-    /// of shared memory. Returns 0 on success.
+    /// The caller is blocked until the host has completed the invalidation and removal of any
+    /// shared pages that were mapped into the region. Upon return, all accesses by the TVM
+    /// within the range are guaranteed to be to confidential memory.
+    ///
+    /// Upon verifying that the range falls completely within a region of shared memory, the TSM
+    /// marks the region as being Shared-Removable and exits to the host. The host is then expected
+    /// to either complete the memory unsharing request, or reject it with an error.
+    ///
+    /// In order to complete the memory unsharing request, the host must remove any pages currently
+    /// mapped in the region to be converted and run the calling TVM vCPU with A0 set to 0 in the
+    /// TSM shared memory area. The TSM will then verify that the page removal has been successfully
+    /// completed and will mark the region as confidential. Otherwise an error is returned to the
+    /// host.
+    ///
+    /// If the host wishes to reject the request, it must run the TVM vCPU with A0 set to a non-zero
+    /// value in the TSM shared memory area. The TSM will mark the region as non-removable and
+    /// forward the error code to the TVM.
+    ///
+    /// Both `addr` and `len` must be page aligned, and the range must lie within an existing region
+    /// of shared memory.
     ///
     /// a6 = 3
     UnshareMemory {
