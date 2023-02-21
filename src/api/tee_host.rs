@@ -372,7 +372,7 @@ pub fn demote_page(vmid: u64, guest_addr: u64, page_type: TsmPageType) -> Result
 }
 
 /// Removes mappings from a TVM.
-pub fn removes_pages(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
+pub fn remove_pages(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
     let msg = SbiMessage::TeeHost(TvmRemovePages {
         guest_id: vmid,
         guest_addr,
