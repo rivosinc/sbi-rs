@@ -1,6 +1,7 @@
-// Copyright (c) 2022 by Rivos Inc.
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-FileCopyrightText: 2023 Rivos Inc.
+//
 // SPDX-License-Identifier: Apache-2.0
+
 use crate::ecall_send;
 use crate::{BaseFunction::*, Error as SbiError, Result, SbiMessage};
 
