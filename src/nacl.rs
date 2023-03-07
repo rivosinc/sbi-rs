@@ -23,11 +23,11 @@ pub struct NaclShmem {
     /// Currently unused in the TEE-related extensions and will not be read or written by the TSM.
     pub dirty_bitmap: [u64; 16],
     /// Hypervisor and virtual-supervisor CSRs. The 12-bit CSR number is transformed into a 10-bit
-    /// index by extracting bits `{csr[11:10], csr[8:0]}` since `csr[9:8]` is always 2'b10 for HS
+    /// index by extracting bits `{csr[11:10], csr[7:0]}` since `csr[9:8]` is always 2'b10 for HS
     /// and VS CSRs.
     ///
     /// These CSRs may be updated by `TvmCpuRun` in the TEE-Host extension. See the documentation
-    /// of `TvmCpuRun` for more detials.
+    /// of `TvmCpuRun` for more details.
     pub csrs: [u64; 1024],
 }
 

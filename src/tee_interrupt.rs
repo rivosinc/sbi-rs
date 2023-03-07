@@ -105,7 +105,7 @@ pub enum TeeInterruptFunction {
     /// vCPU's virtualized IMSIC (i.e. 1 + `guests_per_hart`). The vCPU must currently be unbound.
     /// Upon completion,  the vCPU is eligible to be run on this CPU with `TvmCpuRun`.
     ///
-    /// Returns 0 on succees.
+    /// Returns 0 on success.
     ///
     /// a6 = 4
     TvmCpuBindImsic {

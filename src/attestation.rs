@@ -161,7 +161,7 @@ pub enum AttestationFunction {
         caps_size: u64,
     },
 
-    /// Get an attestion evidence from a Certificate Signing Request (CSR)
+    /// Get an attestation evidence from a Certificate Signing Request (CSR)
     /// <https://datatracker.ietf.org/doc/html/rfc2986>.
     /// The caller passes the CSR and its length through the first 2 arguments.
     /// The third argument is the address where the caller places a data blob
@@ -169,7 +169,7 @@ pub enum AttestationFunction {
     /// cryptographic nonce.
     /// The fourth argument is the evidence format: DiceTcbInfo (0),
     /// DiceMultiTcbInfo (1) or OpenDice (2).
-    /// The fifthh argument is the address where the generated certificate will be placed.
+    /// The fifth argument is the address where the generated certificate will be placed.
     /// The evidence is formatted an x.509 DiceTcbInfo certificate extension
     ///
     /// a6 = 1
