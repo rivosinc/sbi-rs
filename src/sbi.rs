@@ -320,7 +320,7 @@ impl SbiMessage {
 
     /// Returns the result returned in the SbiMessage. Intended for use after an SbiMessage has been
     /// handled by the firmware. Interprets the given registers based on the extension and function
-    /// and returns the approprate result.
+    /// and returns the appropriate result.
     ///
     /// # Example
     ///
