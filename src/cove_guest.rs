@@ -5,9 +5,9 @@
 use crate::error::*;
 use crate::function::*;
 
-/// Functions provided by the TEE Guest extension to TVM guests.
+/// Functions provided by the COVE Guest extension to TVM guests.
 #[derive(Copy, Clone, Debug)]
-pub enum TeeGuestFunction {
+pub enum CoveGuestFunction {
     /// Marks the specified range of guest physical address space as used for emulated MMIO. Upon
     /// return, all accesses by the TVM within the range are trapped and may be emulated by the
     /// host.
@@ -118,10 +118,10 @@ pub enum TeeGuestFunction {
     },
 }
 
-impl TeeGuestFunction {
+impl CoveGuestFunction {
     /// Attempts to parse `Self` from the passed in `a0-a7`.
     pub(crate) fn from_regs(args: &[u64]) -> Result<Self> {
-        use TeeGuestFunction::*;
+        use CoveGuestFunction::*;
         match args[6] {
             0 => Ok(AddMmioRegion {
                 addr: args[0],
@@ -146,9 +146,9 @@ impl TeeGuestFunction {
     }
 }
 
-impl SbiFunction for TeeGuestFunction {
+impl SbiFunction for CoveGuestFunction {
     fn a6(&self) -> u64 {
-        use TeeGuestFunction::*;
+        use CoveGuestFunction::*;
         match self {
             AddMmioRegion { .. } => 0,
             RemoveMmioRegion { .. } => 1,
@@ -160,7 +160,7 @@ impl SbiFunction for TeeGuestFunction {
     }
 
     fn a0(&self) -> u64 {
-        use TeeGuestFunction::*;
+        use CoveGuestFunction::*;
         match self {
             AddMmioRegion { addr, len: _ } => *addr,
             RemoveMmioRegion { addr, len: _ } => *addr,
@@ -172,7 +172,7 @@ impl SbiFunction for TeeGuestFunction {
     }
 
     fn a1(&self) -> u64 {
-        use TeeGuestFunction::*;
+        use CoveGuestFunction::*;
         match self {
             AddMmioRegion { addr: _, len } => *len,
             RemoveMmioRegion { addr: _, len } => *len,

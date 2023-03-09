@@ -5,13 +5,13 @@
 use core::{marker::PhantomData, ptr};
 use static_assertions::const_assert;
 
-use crate::TeeHostFunction::*;
+use crate::CoveHostFunction::*;
 use crate::{ecall_send, Error, Result, SbiMessage};
 use crate::{
     NaclShmem, TsmInfo, TsmPageType, TsmShmemScratch, TvmCreateParams, NACL_SCRATCH_BYTES,
 };
 
-/// Provides volatile accessors to a TEE `NaclShmem` area.
+/// Provides volatile accessors to a COVE `NaclShmem` area.
 pub struct TsmShmemAreaRef<'a> {
     ptr: *mut NaclShmem,
     _lifetime: PhantomData<&'a NaclShmem>,
@@ -79,7 +79,7 @@ fn _assert_scratch_size() {
 
 /// Initiates a TSM fence on this CPU.
 pub fn tsm_initiate_fence() -> Result<()> {
-    let msg = SbiMessage::TeeHost(TsmInitiateFence);
+    let msg = SbiMessage::CoveHost(TsmInitiateFence);
     // Safety: TsmInitiateFence doesn't read or write any memory we have access to.
     unsafe { ecall_send(&msg) }?;
     Ok(())
@@ -87,7 +87,7 @@ pub fn tsm_initiate_fence() -> Result<()> {
 
 /// Performs a fence on this CPU.
 pub fn tsm_local_fence() -> Result<()> {
-    let msg = SbiMessage::TeeHost(TsmLocalFence);
+    let msg = SbiMessage::CoveHost(TsmLocalFence);
     // Safety: TsmLocalFence doesn't read or write any memory we have access to.
     unsafe { ecall_send(&msg) }?;
     Ok(())
@@ -95,7 +95,7 @@ pub fn tsm_local_fence() -> Result<()> {
 
 /// Initiates a fence for the given TVM.
 pub fn tvm_initiate_fence(vmid: u64) -> Result<()> {
-    let msg = SbiMessage::TeeHost(TvmInitiateFence { guest_id: vmid });
+    let msg = SbiMessage::CoveHost(TvmInitiateFence { guest_id: vmid });
     // Safety: TvmInitiateFence doesn't read or write any memory we have access to.
     unsafe { ecall_send(&msg) }?;
     Ok(())
@@ -105,7 +105,7 @@ pub fn tvm_initiate_fence(vmid: u64) -> Result<()> {
 pub fn get_info() -> Result<TsmInfo> {
     let mut tsm_info = TsmInfo::default();
     let tsm_info_size = core::mem::size_of::<TsmInfo>() as u64;
-    let msg = SbiMessage::TeeHost(TsmGetInfo {
+    let msg = SbiMessage::CoveHost(TsmGetInfo {
         dest_addr: &mut tsm_info as *mut _ as u64,
         len: tsm_info_size,
     });
@@ -127,7 +127,7 @@ pub fn get_info() -> Result<TsmInfo> {
 /// The address provided must point to memory that won't be accessed again by the calling program
 /// until it is reclaimed from confidential memory.
 pub unsafe fn convert_pages(addr: u64, num_pages: u64) -> Result<()> {
-    let msg = SbiMessage::TeeHost(TsmConvertPages {
+    let msg = SbiMessage::CoveHost(TsmConvertPages {
         page_addr: addr,
         num_pages,
     });
@@ -139,7 +139,7 @@ pub unsafe fn convert_pages(addr: u64, num_pages: u64) -> Result<()> {
 
 /// Reclaims pages that were previously converted to confidential memory with `convert_pages`.
 pub fn reclaim_pages(addr: u64, num_pages: u64) -> Result<()> {
-    let msg = SbiMessage::TeeHost(TsmReclaimPages {
+    let msg = SbiMessage::CoveHost(TsmReclaimPages {
         page_addr: addr,
         num_pages,
     });
@@ -163,7 +163,7 @@ pub fn tvm_create(tvm_page_directory_addr: u64, tvm_state_addr: u64) -> Result<u
         tvm_page_directory_addr,
         tvm_state_addr,
     };
-    let msg = SbiMessage::TeeHost(TvmCreate {
+    let msg = SbiMessage::CoveHost(TvmCreate {
         params_addr: (&tvm_create_params as *const TvmCreateParams) as u64,
         len: core::mem::size_of::<TvmCreateParams>() as u64,
     });
@@ -175,7 +175,7 @@ pub fn tvm_create(tvm_page_directory_addr: u64, tvm_state_addr: u64) -> Result<u
 
 /// Finalizes the given TVM, setting the initial entry point for the TVM's boot vCPU.
 pub fn tvm_finalize(vmid: u64, entry_sepc: u64, entry_arg: u64) -> Result<()> {
-    let msg = SbiMessage::TeeHost(Finalize {
+    let msg = SbiMessage::CoveHost(Finalize {
         guest_id: vmid,
         entry_sepc,
         entry_arg,
@@ -187,7 +187,7 @@ pub fn tvm_finalize(vmid: u64, entry_sepc: u64, entry_arg: u64) -> Result<()> {
 
 /// Destroys a TVM created with `tvm_create`.
 pub fn tvm_destroy(vmid: u64) -> Result<()> {
-    let msg = SbiMessage::TeeHost(TvmDestroy { guest_id: vmid });
+    let msg = SbiMessage::CoveHost(TvmDestroy { guest_id: vmid });
     // Safety: destroying a VM doesn't write to memory that's accessible from the host.
     unsafe { ecall_send(&msg) }?;
     Ok(())
@@ -195,7 +195,7 @@ pub fn tvm_destroy(vmid: u64) -> Result<()> {
 
 /// Runs the given vcpu of the specified TVM.
 pub fn tvm_run(vmid: u64, vcpu_id: u64) -> Result<u64> {
-    let msg = SbiMessage::TeeHost(TvmCpuRun {
+    let msg = SbiMessage::CoveHost(TvmCpuRun {
         guest_id: vmid,
         vcpu_id,
     });
@@ -205,7 +205,7 @@ pub fn tvm_run(vmid: u64, vcpu_id: u64) -> Result<u64> {
 
 /// Adds pages to be used for page table entries of the given vmid.
 pub fn add_page_table_pages(vmid: u64, page_addr: u64, num_pages: u64) -> Result<()> {
-    let msg = SbiMessage::TeeHost(AddPageTablePages {
+    let msg = SbiMessage::CoveHost(AddPageTablePages {
         guest_id: vmid,
         page_addr,
         num_pages,
@@ -222,7 +222,7 @@ pub fn add_page_table_pages(vmid: u64, page_addr: u64, num_pages: u64) -> Result
 /// The address `state_page_addr` must reference confidential memory pages. The caller must provide
 /// `TsmInfo::tvm_vcpu_state_pages` pages.
 pub fn add_vcpu(vmid: u64, vcpu_id: u64, state_page_addr: u64) -> Result<()> {
-    let msg = SbiMessage::TeeHost(TvmCpuCreate {
+    let msg = SbiMessage::CoveHost(TvmCpuCreate {
         guest_id: vmid,
         vcpu_id,
         state_page_addr,
@@ -235,7 +235,7 @@ pub fn add_vcpu(vmid: u64, vcpu_id: u64, state_page_addr: u64) -> Result<()> {
 
 /// Declares a memory region in the guest's physical address space.
 pub fn add_memory_region(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
-    let msg = SbiMessage::TeeHost(TvmAddMemoryRegion {
+    let msg = SbiMessage::CoveHost(TvmAddMemoryRegion {
         guest_id: vmid,
         guest_addr,
         len,
@@ -262,7 +262,7 @@ pub fn add_measured_pages(
         return Err(Error::InvalidParam);
     }
 
-    let msg = SbiMessage::TeeHost(TvmAddMeasuredPages {
+    let msg = SbiMessage::CoveHost(TvmAddMeasuredPages {
         guest_id: vmid,
         src_addr: src_data.as_ptr() as u64,
         dest_addr,
@@ -286,7 +286,7 @@ pub fn add_zero_pages(
     num_pages: u64,
     guest_addr: u64,
 ) -> Result<()> {
-    let msg = SbiMessage::TeeHost(TvmAddZeroPages {
+    let msg = SbiMessage::CoveHost(TvmAddZeroPages {
         guest_id: vmid,
         page_addr,
         page_type,
@@ -311,7 +311,7 @@ pub unsafe fn add_shared_pages(
     num_pages: u64,
     guest_addr: u64,
 ) -> Result<()> {
-    let msg = SbiMessage::TeeHost(TvmAddSharedPages {
+    let msg = SbiMessage::CoveHost(TvmAddSharedPages {
         guest_id: vmid,
         page_addr,
         page_type,
@@ -324,7 +324,7 @@ pub unsafe fn add_shared_pages(
 
 /// Invalidates the pages in the specified range of guest physical address space.
 pub fn block_pages(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
-    let msg = SbiMessage::TeeHost(TvmBlockPages {
+    let msg = SbiMessage::CoveHost(TvmBlockPages {
         guest_id: vmid,
         guest_addr,
         len,
@@ -337,7 +337,7 @@ pub fn block_pages(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
 /// Marks the invalidated pages in the specified range of guest physical address
 /// space as present.
 pub fn unblock_pages(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
-    let msg = SbiMessage::TeeHost(TvmUnblockPages {
+    let msg = SbiMessage::CoveHost(TvmUnblockPages {
         guest_id: vmid,
         guest_addr,
         len,
@@ -349,7 +349,7 @@ pub fn unblock_pages(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
 
 /// Promotes a set of contiguous mappings to the requested page size.
 pub fn promote_page(vmid: u64, guest_addr: u64, page_type: TsmPageType) -> Result<()> {
-    let msg = SbiMessage::TeeHost(TvmPromotePage {
+    let msg = SbiMessage::CoveHost(TvmPromotePage {
         guest_id: vmid,
         guest_addr,
         page_type,
@@ -361,7 +361,7 @@ pub fn promote_page(vmid: u64, guest_addr: u64, page_type: TsmPageType) -> Resul
 
 /// Demotes a huge page mapping to a set of contiguous mappings at the target size.
 pub fn demote_page(vmid: u64, guest_addr: u64, page_type: TsmPageType) -> Result<()> {
-    let msg = SbiMessage::TeeHost(TvmDemotePage {
+    let msg = SbiMessage::CoveHost(TvmDemotePage {
         guest_id: vmid,
         guest_addr,
         page_type,
@@ -373,7 +373,7 @@ pub fn demote_page(vmid: u64, guest_addr: u64, page_type: TsmPageType) -> Result
 
 /// Removes mappings from a TVM.
 pub fn remove_pages(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
-    let msg = SbiMessage::TeeHost(TvmRemovePages {
+    let msg = SbiMessage::CoveHost(TvmRemovePages {
         guest_id: vmid,
         guest_addr,
         len,

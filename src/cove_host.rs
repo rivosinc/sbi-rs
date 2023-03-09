@@ -116,9 +116,9 @@ impl TsmPageType {
     }
 }
 
-/// Functions provided by the TEE Host extension.
+/// Functions provided by the COVE Host extension.
 #[derive(Copy, Clone, Debug)]
-pub enum TeeHostFunction {
+pub enum CoveHostFunction {
     /// Writes up to `len` bytes of the `TsmInfo` structure to the non-confidential physical address
     /// `dest_addr`. Returns the number of bytes written.
     ///
@@ -198,7 +198,7 @@ pub enum TeeHostFunction {
     /// Adds a memory region to the TVM identified by `guest_id` at the specified range of guest
     /// physical address space. The memory range is confidential to the guest and may only be
     /// populated with confidential pages. The guest may later convert parts of this region to
-    /// shared memory with the `ShareMemory` TEE-Guest call.
+    /// shared memory with the `ShareMemory` COVE-Guest call.
     ///
     /// Both `addr` and `len` must be 4kB-aligned and must not overlap with any previously-added
     /// regions. Memory regions may only be added prior to TVM finalization.
@@ -264,7 +264,7 @@ pub enum TeeHostFunction {
         guest_addr: u64,
     },
     /// Maps non-confidential shared pages in a region of shared memory previously registered by
-    /// the guest via `ShareMemory` in the TEE-Guest API.
+    /// the guest via `ShareMemory` in the COVE-Guest API.
     ///
     /// a6 = 12
     TvmAddSharedPages {
@@ -465,7 +465,7 @@ pub enum TeeHostFunction {
     /// and fenced, and must lie within a removable region of guest physical address space.
     ///
     /// A region of guest physical address space is in a removable state if the guest previously
-    /// invoked ShareMemory or UnshareMemory from the TEE-Guest interface, and that it marked the
+    /// invoked ShareMemory or UnshareMemory from the COVE-Guest interface, and that it marked the
     /// region as "ConfidentialRemovable" or "SharedRemovable".
     ///
     /// The TSM verifies that:
@@ -495,10 +495,10 @@ pub enum TeeHostFunction {
     },
 }
 
-impl TeeHostFunction {
+impl CoveHostFunction {
     /// Attempts to parse `Self` from the passed in `a0-a7`.
     pub(crate) fn from_regs(args: &[u64]) -> Result<Self> {
-        use TeeHostFunction::*;
+        use CoveHostFunction::*;
         match args[6] {
             0 => Ok(TsmGetInfo {
                 dest_addr: args[0],
@@ -596,9 +596,9 @@ impl TeeHostFunction {
     }
 }
 
-impl SbiFunction for TeeHostFunction {
+impl SbiFunction for CoveHostFunction {
     fn a6(&self) -> u64 {
-        use TeeHostFunction::*;
+        use CoveHostFunction::*;
         match self {
             TsmGetInfo {
                 dest_addr: _,
@@ -695,7 +695,7 @@ impl SbiFunction for TeeHostFunction {
     }
 
     fn a0(&self) -> u64 {
-        use TeeHostFunction::*;
+        use CoveHostFunction::*;
         match self {
             TvmCreate {
                 params_addr,
@@ -788,7 +788,7 @@ impl SbiFunction for TeeHostFunction {
     }
 
     fn a1(&self) -> u64 {
-        use TeeHostFunction::*;
+        use CoveHostFunction::*;
         match self {
             TvmCreate {
                 params_addr: _,
@@ -879,7 +879,7 @@ impl SbiFunction for TeeHostFunction {
     }
 
     fn a2(&self) -> u64 {
-        use TeeHostFunction::*;
+        use CoveHostFunction::*;
         match self {
             AddPageTablePages {
                 guest_id: _,
@@ -953,7 +953,7 @@ impl SbiFunction for TeeHostFunction {
     }
 
     fn a3(&self) -> u64 {
-        use TeeHostFunction::*;
+        use CoveHostFunction::*;
         match self {
             TvmAddZeroPages {
                 guest_id: _,
@@ -982,7 +982,7 @@ impl SbiFunction for TeeHostFunction {
     }
 
     fn a4(&self) -> u64 {
-        use TeeHostFunction::*;
+        use CoveHostFunction::*;
         match self {
             TvmAddZeroPages {
                 guest_id: _,
@@ -1011,7 +1011,7 @@ impl SbiFunction for TeeHostFunction {
     }
 
     fn a5(&self) -> u64 {
-        use TeeHostFunction::*;
+        use CoveHostFunction::*;
         match self {
             TvmAddMeasuredPages {
                 guest_id: _,

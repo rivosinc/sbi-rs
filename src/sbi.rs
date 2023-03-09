@@ -31,15 +31,15 @@ pub use reset::*;
 // The State SBI extension
 mod state;
 pub use state::*;
-// The TEE host SBI extension
-mod tee_host;
-pub use tee_host::*;
-// The TEE interrupt SBI extension
-mod tee_interrupt;
-pub use tee_interrupt::*;
-// The TEE guest SBI extension
-mod tee_guest;
-pub use tee_guest::*;
+// The COVE host SBI extension
+mod cove_host;
+pub use cove_host::*;
+// The COVE interrupt SBI extension
+mod cove_interrupt;
+pub use cove_interrupt::*;
+// The COVE guest SBI extension
+mod cove_guest;
+pub use cove_guest::*;
 // The PMU SBI extension
 mod pmu;
 pub use pmu::*;
@@ -125,11 +125,11 @@ pub enum SbiMessage {
     /// Provides functions for accelerating nested virtualization.
     Nacl(NaclFunction),
     /// Provides capabilities for starting confidential virtual machines.
-    TeeHost(TeeHostFunction),
+    CoveHost(CoveHostFunction),
     /// Provides interrupt virtualization for confidential virtual machines.
-    TeeInterrupt(TeeInterruptFunction),
+    CoveInterrupt(CoveInterruptFunction),
     /// Provides capabilities for enlightened confidential virtual machines.
-    TeeGuest(TeeGuestFunction),
+    CoveGuest(CoveGuestFunction),
     /// The extension for getting attestation evidences and extending measurements.
     Attestation(AttestationFunction),
     /// The extension for getting performance counter state.
@@ -150,11 +150,11 @@ impl SbiMessage {
             EXT_RESET => ResetFunction::from_regs(args).map(SbiMessage::Reset),
             EXT_DBCN => DebugConsoleFunction::from_regs(args).map(SbiMessage::DebugConsole),
             EXT_NACL => NaclFunction::from_regs(args).map(SbiMessage::Nacl),
-            EXT_TEE_HOST => TeeHostFunction::from_regs(args).map(SbiMessage::TeeHost),
-            EXT_TEE_INTERRUPT => {
-                TeeInterruptFunction::from_regs(args).map(SbiMessage::TeeInterrupt)
+            EXT_COVE_HOST => CoveHostFunction::from_regs(args).map(SbiMessage::CoveHost),
+            EXT_COVE_INTERRUPT => {
+                CoveInterruptFunction::from_regs(args).map(SbiMessage::CoveInterrupt)
             }
-            EXT_TEE_GUEST => TeeGuestFunction::from_regs(args).map(SbiMessage::TeeGuest),
+            EXT_COVE_GUEST => CoveGuestFunction::from_regs(args).map(SbiMessage::CoveGuest),
             EXT_ATTESTATION => AttestationFunction::from_regs(args).map(SbiMessage::Attestation),
             EXT_PMU => PmuFunction::from_regs(args).map(SbiMessage::Pmu),
             EXT_VENDOR_RANGE_START..=EXT_VENDOR_RANGE_END => Ok(SbiMessage::Vendor(
@@ -174,9 +174,9 @@ impl SbiMessage {
             Reset(_) => EXT_RESET,
             DebugConsole(_) => EXT_DBCN,
             Nacl(_) => EXT_NACL,
-            TeeHost(_) => EXT_TEE_HOST,
-            TeeInterrupt(_) => EXT_TEE_INTERRUPT,
-            TeeGuest(_) => EXT_TEE_GUEST,
+            CoveHost(_) => EXT_COVE_HOST,
+            CoveInterrupt(_) => EXT_COVE_INTERRUPT,
+            CoveGuest(_) => EXT_COVE_GUEST,
             Attestation(_) => EXT_ATTESTATION,
             Pmu(_) => EXT_PMU,
             Vendor(regs) => regs[7],
@@ -195,9 +195,9 @@ impl SbiMessage {
             Reset(f) => f.a6(),
             DebugConsole(f) => f.a6(),
             Nacl(f) => f.a6(),
-            TeeHost(f) => f.a6(),
-            TeeInterrupt(f) => f.a6(),
-            TeeGuest(f) => f.a6(),
+            CoveHost(f) => f.a6(),
+            CoveInterrupt(f) => f.a6(),
+            CoveGuest(f) => f.a6(),
             Attestation(f) => f.a6(),
             Pmu(f) => f.a6(),
             Vendor(regs) => regs[6],
@@ -214,9 +214,9 @@ impl SbiMessage {
             Reset(f) => f.a5(),
             DebugConsole(f) => f.a5(),
             Nacl(f) => f.a5(),
-            TeeHost(f) => f.a5(),
-            TeeInterrupt(f) => f.a5(),
-            TeeGuest(f) => f.a5(),
+            CoveHost(f) => f.a5(),
+            CoveInterrupt(f) => f.a5(),
+            CoveGuest(f) => f.a5(),
             Attestation(f) => f.a5(),
             Pmu(f) => f.a5(),
             Vendor(regs) => regs[5],
@@ -233,9 +233,9 @@ impl SbiMessage {
             Reset(f) => f.a4(),
             DebugConsole(f) => f.a4(),
             Nacl(f) => f.a4(),
-            TeeHost(f) => f.a4(),
-            TeeInterrupt(f) => f.a4(),
-            TeeGuest(f) => f.a4(),
+            CoveHost(f) => f.a4(),
+            CoveInterrupt(f) => f.a4(),
+            CoveGuest(f) => f.a4(),
             Attestation(f) => f.a4(),
             Pmu(f) => f.a4(),
             Vendor(regs) => regs[4],
@@ -252,9 +252,9 @@ impl SbiMessage {
             Reset(f) => f.a3(),
             DebugConsole(f) => f.a3(),
             Nacl(f) => f.a3(),
-            TeeHost(f) => f.a3(),
-            TeeInterrupt(f) => f.a3(),
-            TeeGuest(f) => f.a3(),
+            CoveHost(f) => f.a3(),
+            CoveInterrupt(f) => f.a3(),
+            CoveGuest(f) => f.a3(),
             Attestation(f) => f.a3(),
             Pmu(f) => f.a3(),
             Vendor(regs) => regs[3],
@@ -271,9 +271,9 @@ impl SbiMessage {
             Reset(f) => f.a2(),
             DebugConsole(f) => f.a2(),
             Nacl(f) => f.a2(),
-            TeeHost(f) => f.a2(),
-            TeeInterrupt(f) => f.a2(),
-            TeeGuest(f) => f.a2(),
+            CoveHost(f) => f.a2(),
+            CoveInterrupt(f) => f.a2(),
+            CoveGuest(f) => f.a2(),
             Attestation(f) => f.a2(),
             Pmu(f) => f.a2(),
             Vendor(regs) => regs[2],
@@ -290,9 +290,9 @@ impl SbiMessage {
             Reset(f) => f.a1(),
             DebugConsole(f) => f.a1(),
             Nacl(f) => f.a1(),
-            TeeHost(f) => f.a1(),
-            TeeInterrupt(f) => f.a1(),
-            TeeGuest(f) => f.a1(),
+            CoveHost(f) => f.a1(),
+            CoveInterrupt(f) => f.a1(),
+            CoveGuest(f) => f.a1(),
             Attestation(f) => f.a1(),
             Pmu(f) => f.a1(),
             Vendor(regs) => regs[1],
@@ -309,9 +309,9 @@ impl SbiMessage {
             DebugConsole(f) => f.a0(),
             HartState(f) => f.a0(),
             Nacl(f) => f.a0(),
-            TeeHost(f) => f.a0(),
-            TeeInterrupt(f) => f.a0(),
-            TeeGuest(f) => f.a0(),
+            CoveHost(f) => f.a0(),
+            CoveInterrupt(f) => f.a0(),
+            CoveGuest(f) => f.a0(),
             Attestation(f) => f.a0(),
             Pmu(f) => f.a0(),
             Vendor(regs) => regs[0],

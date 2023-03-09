@@ -15,13 +15,13 @@ pub mod state;
 pub mod nacl;
 
 /// Host interfaces for confidential computing.
-pub mod tee_host;
+pub mod cove_host;
 
 /// Host interfaces for confidential computing interrupt virtualization.
-pub mod tee_interrupt;
+pub mod cove_interrupt;
 
 /// Guest interfaces for confidential computing.
-pub mod tee_guest;
+pub mod cove_guest;
 
 /// Host interfaces for PMU.
 pub mod pmu;
