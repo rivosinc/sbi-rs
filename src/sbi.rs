@@ -150,11 +150,11 @@ impl SbiMessage {
             EXT_RESET => ResetFunction::from_regs(args).map(SbiMessage::Reset),
             EXT_DBCN => DebugConsoleFunction::from_regs(args).map(SbiMessage::DebugConsole),
             EXT_NACL => NaclFunction::from_regs(args).map(SbiMessage::Nacl),
-            EXT_TEE_HOST => TeeHostFunction::from_regs(args).map(SbiMessage::TeeHost),
-            EXT_TEE_INTERRUPT => {
+            EXT_COVE_HOST => TeeHostFunction::from_regs(args).map(SbiMessage::TeeHost),
+            EXT_COVE_INTERRUPT => {
                 TeeInterruptFunction::from_regs(args).map(SbiMessage::TeeInterrupt)
             }
-            EXT_TEE_GUEST => TeeGuestFunction::from_regs(args).map(SbiMessage::TeeGuest),
+            EXT_COVE_GUEST => TeeGuestFunction::from_regs(args).map(SbiMessage::TeeGuest),
             EXT_ATTESTATION => AttestationFunction::from_regs(args).map(SbiMessage::Attestation),
             EXT_PMU => PmuFunction::from_regs(args).map(SbiMessage::Pmu),
             EXT_VENDOR_RANGE_START..=EXT_VENDOR_RANGE_END => Ok(SbiMessage::Vendor(
@@ -174,9 +174,9 @@ impl SbiMessage {
             Reset(_) => EXT_RESET,
             DebugConsole(_) => EXT_DBCN,
             Nacl(_) => EXT_NACL,
-            TeeHost(_) => EXT_TEE_HOST,
-            TeeInterrupt(_) => EXT_TEE_INTERRUPT,
-            TeeGuest(_) => EXT_TEE_GUEST,
+            TeeHost(_) => EXT_COVE_HOST,
+            TeeInterrupt(_) => EXT_COVE_INTERRUPT,
+            TeeGuest(_) => EXT_COVE_GUEST,
             Attestation(_) => EXT_ATTESTATION,
             Pmu(_) => EXT_PMU,
             Vendor(regs) => regs[7],
