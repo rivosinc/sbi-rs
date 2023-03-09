@@ -14,19 +14,19 @@ pub struct NaclShmem {
     /// Scratch space. The layout of this scratch space is defined by the particular function being
     /// invoked.
     ///
-    /// For the `TvmCpuRun` function in the TEE-Host extension, the layout of this scratch space
+    /// For the `TvmCpuRun` function in the COVE-Host extension, the layout of this scratch space
     /// matches the `TsmShmemScratch` struct.
     pub scratch: [u64; NACL_SCRATCH_BYTES / 8],
     _reserved: [u64; 240],
     /// Bitmap indicating which CSRs in `csrs` the host wishes to sync.
     ///
-    /// Currently unused in the TEE-related extensions and will not be read or written by the TSM.
+    /// Currently unused in the COVE-related extensions and will not be read or written by the TSM.
     pub dirty_bitmap: [u64; 16],
     /// Hypervisor and virtual-supervisor CSRs. The 12-bit CSR number is transformed into a 10-bit
     /// index by extracting bits `{csr[11:10], csr[7:0]}` since `csr[9:8]` is always 2'b10 for HS
     /// and VS CSRs.
     ///
-    /// These CSRs may be updated by `TvmCpuRun` in the TEE-Host extension. See the documentation
+    /// These CSRs may be updated by `TvmCpuRun` in the COVE-Host extension. See the documentation
     /// of `TvmCpuRun` for more details.
     pub csrs: [u64; 1024],
 }
@@ -57,7 +57,7 @@ pub enum NaclFunction {
     /// physical address space. The entire range of memory occupied by the `NaclShmem` struct must
     /// remain accessible to the caller until the `NaclShmem` strucutre is unregistered by calling
     /// this function with `shmem_pfn` set to -1. In particular this means that, in the presence of
-    /// the TEE-Host extension, the memory occupied by the `NaclShmem` structure is "pinned" in
+    /// the COVE-Host extension, the memory occupied by the `NaclShmem` structure is "pinned" in
     /// the non-confidential state and cannot be converted.
     ///
     /// a6 = 0
@@ -66,7 +66,7 @@ pub enum NaclFunction {
         shmem_pfn: u64,
     },
     // There are other functions in the proposed NACL extension, but we ignore them as they aren't
-    // relevant to the TEE extensions. Note that this violates SBI policy, but since both the TEE and
+    // relevant to the COVE extensions. Note that this violates SBI policy, but since both the COVE and
     // NACL extensions are in active development, we let it go for now.
 }
 

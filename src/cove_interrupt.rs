@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-//! The TEE-AIA extension supplements the TEE extension with hardware-assisted interrupt
+//! The COVE-AIA extension supplements the COVE extension with hardware-assisted interrupt
 //! virtualization using the RISC-V Advanced Interrupt Architecture (AIA) on platforms which
 //! support it.
 
@@ -39,9 +39,9 @@ pub struct TvmAiaParams {
     pub guests_per_hart: u32,
 }
 
-/// Functions provided by the TEE Interrupt extension.
+/// Functions provided by the COVE Interrupt extension.
 #[derive(Copy, Clone, Debug)]
-pub enum TeeInterruptFunction {
+pub enum CoveInterruptFunction {
     /// Configures AIA virtualization for the TVM identified by `tvm_id` from the parameters in
     /// the `TvmAiaParams` structure at the non-confidential physical address `params_addr`.
     ///
@@ -206,10 +206,10 @@ pub enum TeeInterruptFunction {
     },
 }
 
-impl TeeInterruptFunction {
+impl CoveInterruptFunction {
     /// Attempts to parse `Self` from the register values passed in `a0-a7`.
     pub(crate) fn from_regs(args: &[u64]) -> Result<Self> {
-        use TeeInterruptFunction::*;
+        use CoveInterruptFunction::*;
         match args[6] {
             0 => Ok(TvmAiaInit {
                 tvm_id: args[0],
@@ -263,9 +263,9 @@ impl TeeInterruptFunction {
     }
 }
 
-impl SbiFunction for TeeInterruptFunction {
+impl SbiFunction for CoveInterruptFunction {
     fn a6(&self) -> u64 {
-        use TeeInterruptFunction::*;
+        use CoveInterruptFunction::*;
         match self {
             TvmAiaInit { .. } => 0,
             TvmCpuSetImsicAddr { .. } => 1,
@@ -282,7 +282,7 @@ impl SbiFunction for TeeInterruptFunction {
     }
 
     fn a0(&self) -> u64 {
-        use TeeInterruptFunction::*;
+        use CoveInterruptFunction::*;
         match self {
             TvmAiaInit {
                 tvm_id,
@@ -319,7 +319,7 @@ impl SbiFunction for TeeInterruptFunction {
     }
 
     fn a1(&self) -> u64 {
-        use TeeInterruptFunction::*;
+        use CoveInterruptFunction::*;
         match self {
             TvmAiaInit {
                 tvm_id: _,
@@ -355,7 +355,7 @@ impl SbiFunction for TeeInterruptFunction {
     }
 
     fn a2(&self) -> u64 {
-        use TeeInterruptFunction::*;
+        use CoveInterruptFunction::*;
         match self {
             TvmAiaInit {
                 tvm_id: _,
