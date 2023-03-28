@@ -49,21 +49,49 @@ impl Default for NaclShmem {
     }
 }
 
+/// NaclFunction::ProbeFeature feature IDs.
+pub enum NaclFeature {
+    /// The synchronize CSR feature describes the ability of the SBI implementation
+    /// (Salus) to allow supervisor software (Host) to write RISC-V H-extension CSRs
+    /// using the CSR space.
+    SyncCSR = 0,
+    /// The synchronize HFENCE feature describes the ability of the SBI implementation
+    /// (Salus) to allow supervisor software (Host) to do HFENCE using the scratch space
+    SyncHfence = 1,
+    /// The synchronize SRET feature describes the ability of the SBI implementation
+    /// (Salus) to do synchronization of CSRs and HFENCEs in the nested acceleration
+    /// shared memory for the supervisor software (Host) along with SRET emulation.
+    SyncSret = 2,
+    /// The autoswap CSR feature describes the ability of the SBI implementation (Salus)
+    /// to swap certain RISC-V H-extension CSR values from the nested acceleration shared
+    /// memory whenever the virtualization state of the supervisor software (Host) changes.
+    AutoSwapCsr = 3,
+}
+
 /// Functions provided by the Nested Virtualization Acceleration (NACL) extension.
 #[derive(Copy, Clone, Debug)]
 pub enum NaclFunction {
+    /// Allows the nested hypervisor to query Nacl features supported by the host hypervisor.
+    /// Features are given in `enum NaclFeature`. Salus doesn't support any of the features
+    /// and only allows the host to read CSRs. Any writes are ignored.
+    ///
+    /// a6 = 0
+    ProbeFeature {
+        /// a0 = Feature ID being checked.
+        feature_id: u64,
+    },
     /// Registers the nested hypervisor <-> host hypervisor shared memory area for the calling CPU.
     /// `shmem_pfn` is the base PFN of where the `NaclShmem` struct will be placed in the caller's
     /// physical address space. The entire range of memory occupied by the `NaclShmem` struct must
-    /// remain accessible to the caller until the `NaclShmem` strucutre is unregistered by calling
+    /// remain accessible to the caller until the `NaclShmem` structure is unregistered by calling
     /// this function with `shmem_pfn` set to -1. In particular this means that, in the presence of
     /// the COVE-Host extension, the memory occupied by the `NaclShmem` structure is "pinned" in
     /// the non-confidential state and cannot be converted.
     ///
-    /// a6 = 0
+    /// a6 = 1
     SetShmem {
-        /// a0 = PFN of shared memory area
-        shmem_pfn: u64,
+        /// a0 = Address of the shared memory area.
+        shmem_addr: u64,
     },
     // There are other functions in the proposed NACL extension, but we ignore them as they aren't
     // relevant to the COVE extensions. Note that this violates SBI policy, but since both the COVE and
@@ -75,7 +103,12 @@ impl NaclFunction {
     pub(crate) fn from_regs(args: &[u64]) -> Result<Self> {
         use NaclFunction::*;
         match args[6] {
-            0 => Ok(SetShmem { shmem_pfn: args[0] }),
+            0 => Ok(ProbeFeature {
+                feature_id: args[0],
+            }),
+            1 => Ok(SetShmem {
+                shmem_addr: args[0],
+            }),
             _ => Err(Error::NotSupported),
         }
     }
@@ -85,14 +118,16 @@ impl SbiFunction for NaclFunction {
     fn a6(&self) -> u64 {
         use NaclFunction::*;
         match self {
-            SetShmem { .. } => 0,
+            ProbeFeature { .. } => 0,
+            SetShmem { .. } => 1,
         }
     }
 
     fn a0(&self) -> u64 {
         use NaclFunction::*;
         match self {
-            SetShmem { shmem_pfn } => *shmem_pfn,
+            ProbeFeature { feature_id } => *feature_id,
+            SetShmem { shmem_addr } => *shmem_addr,
         }
     }
 }
