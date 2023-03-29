@@ -110,7 +110,7 @@ pub fn get_info() -> Result<TsmInfo> {
         len: tsm_info_size,
     });
     // Safety: The passed info pointer is uniquely owned so it's safe to modify in SBI.
-    let tsm_info_len = unsafe { ecall_send(&msg)? };
+    let tsm_info_len: u64 = unsafe { ecall_send(&msg)? };
 
     if tsm_info_len != tsm_info_size {
         return Err(Error::Failed);
