@@ -62,14 +62,14 @@ pub fn get_evidence(
     // passed as arguments.
     // GetEvidence writes to a single reference to `cert_bytes``, which is
     // defined in this scope.
-    let len = unsafe { ecall_send(&msg) }?;
+    let len: usize = unsafe { ecall_send(&msg) }?;
 
     // Safety: cert_bytes is backed by a MAX_CERT_SIZE array.
     unsafe {
-        if len as usize > MAX_CERT_SIZE {
+        if len > MAX_CERT_SIZE {
             return Err(Error::Failed);
         }
-        cert_bytes.set_len(len as usize);
+        cert_bytes.set_len(len);
     };
 
     Ok(cert_bytes)
@@ -110,14 +110,14 @@ pub fn read_measurement(index: usize) -> Result<ArrayVec<u8, MAX_HASH_SIZE>> {
 
     // Safety: ReadMeasurement writes into a single reference to `msmt_bytes`,
     // which is defined in this scope.
-    let len = unsafe { ecall_send(&msg) }?;
+    let len: usize = unsafe { ecall_send(&msg) }?;
 
     // Safety: msmt_bytes is backed by a MAX_HASH_SIZE array.
     unsafe {
-        if len as usize > MAX_HASH_SIZE {
+        if len > MAX_HASH_SIZE {
             return Err(Error::Failed);
         }
-        msmt_bytes.set_len(len as usize);
+        msmt_bytes.set_len(len);
     };
 
     Ok(msmt_bytes)

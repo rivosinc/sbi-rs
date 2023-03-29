@@ -59,12 +59,12 @@ pub struct SbiReturn {
     /// The error code (0 for success).
     pub error_code: i64,
     /// The return value if the operation is successful.
-    pub return_value: u64,
+    pub return_value: i64,
 }
 
 impl SbiReturn {
     /// Returns an `SbiReturn` that indicates success.
-    pub fn success(return_value: u64) -> Self {
+    pub fn success(return_value: i64) -> Self {
         Self {
             error_code: SBI_SUCCESS,
             return_value,
@@ -72,8 +72,8 @@ impl SbiReturn {
     }
 }
 
-impl From<Result<u64>> for SbiReturn {
-    fn from(result: Result<u64>) -> SbiReturn {
+impl From<Result<i64>> for SbiReturn {
+    fn from(result: Result<i64>) -> SbiReturn {
         match result {
             Ok(rv) => Self::success(rv),
             Err(e) => Self::from(e),
@@ -90,10 +90,37 @@ impl From<Error> for SbiReturn {
     }
 }
 
+impl From<SbiReturn> for Result<i64> {
+    fn from(ret: SbiReturn) -> Result<i64> {
+        match ret.error_code {
+            SBI_SUCCESS => Ok(ret.return_value),
+            e => Err(Error::from_code(e)),
+        }
+    }
+}
+
 impl From<SbiReturn> for Result<u64> {
     fn from(ret: SbiReturn) -> Result<u64> {
         match ret.error_code {
-            SBI_SUCCESS => Ok(ret.return_value),
+            SBI_SUCCESS => Ok(ret.return_value as u64),
+            e => Err(Error::from_code(e)),
+        }
+    }
+}
+
+impl From<SbiReturn> for Result<usize> {
+    fn from(ret: SbiReturn) -> Result<usize> {
+        match ret.error_code {
+            SBI_SUCCESS => Ok(ret.return_value as usize),
+            e => Err(Error::from_code(e)),
+        }
+    }
+}
+
+impl From<SbiReturn> for Result<()> {
+    fn from(ret: SbiReturn) -> Result<()> {
+        match ret.error_code {
+            SBI_SUCCESS => Ok(()),
             e => Err(Error::from_code(e)),
         }
     }
@@ -340,16 +367,23 @@ impl SbiMessage {
     ///     msg.result(a0, a1)
     /// }
     /// ```
-    pub fn result(&self, a0: u64, a1: u64) -> Result<u64> {
+    pub fn result<T>(&self, a0: i64, a1: i64) -> Result<T>
+    where
+        Result<T>: From<SbiReturn>,
+    {
         let ret = SbiReturn {
-            error_code: a0 as i64,
+            error_code: a0,
             return_value: a1,
         };
         match self {
             // For legacy messages, a0 is 0 on success and an implementation-defined error value on
             // failure. Nothing is returned in a1.
-            SbiMessage::PutChar(_) => match a0 as i64 {
-                SBI_SUCCESS => Ok(0),
+            SbiMessage::PutChar(_) => match a0 {
+                SBI_SUCCESS => SbiReturn {
+                    error_code: 0,
+                    return_value: 0,
+                }
+                .into(),
                 _ => Err(Error::Failed),
             },
             _ => ret.into(),
@@ -369,7 +403,10 @@ impl SbiMessage {
 /// In addition the caller is placing trust in the firmware or hypervisor to maintain the promises
 /// of the interface w.r.t. reading and writing only within the provided bounds.
 #[cfg(all(target_arch = "riscv64", target_os = "none"))]
-pub unsafe fn ecall_send(msg: &SbiMessage) -> Result<u64> {
+pub unsafe fn ecall_send<T>(msg: &SbiMessage) -> Result<T>
+where
+    Result<T>: From<SbiReturn>,
+{
     // normally error code
     let mut a0;
     // normally return value
@@ -388,6 +425,9 @@ pub unsafe fn ecall_send(msg: &SbiMessage) -> Result<u64> {
 /// # Safety
 ///
 /// Test-only. Do not call.
-pub unsafe fn ecall_send(_msg: &SbiMessage) -> Result<u64> {
+pub unsafe fn ecall_send<T>(_msg: &SbiMessage) -> Result<T>
+where
+    Result<T>: From<SbiReturn>,
+{
     panic!("ecall_send called");
 }
