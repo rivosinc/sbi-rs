@@ -1,4 +1,12 @@
+<!--
+SPDX-FileCopyrightText: 2023 Rivos Inc.
+
+SPDX-License-Identifier: Apache-2.0
+-->
+
 # Overview
+
+[![REUSE status](https://api.reuse.software/badge/github.com/rivosinc/sbi-rs)](https://api.reuse.software/info/github.com/rivosinc/sbi-rs)
 
 This crate provides interfaces for both implementing(firmware or hypervisor)
 and using(S and VS mode supervisors)
