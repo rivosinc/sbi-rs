@@ -12,7 +12,7 @@ pub fn console_puts(chars: &[u8]) -> Result<()> {
     });
 
     // Safety: The sbi implementation is trusted not to write memory when printing to the console.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
 
     Ok(())
 }

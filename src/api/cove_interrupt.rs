@@ -15,7 +15,7 @@ pub fn tvm_aia_init(tvm_id: u64, tvm_aia_params: TvmAiaParams) -> Result<()> {
     });
     // Safety: `TvmConfigureAia` will only read up to `len` bytes of the `TvmAiaParams` structure
     // we passed in.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -27,7 +27,7 @@ pub fn set_vcpu_imsic_addr(tvm_id: u64, vcpu_id: u64, imsic_addr: u64) -> Result
         imsic_addr,
     });
     // Safety: `TvmCpuSetImsicAddr` doesn't touch host memory in any way.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -39,7 +39,7 @@ pub fn set_vcpu_imsic_addr(tvm_id: u64, vcpu_id: u64, imsic_addr: u64) -> Result
 pub unsafe fn convert_imsic(imsic_addr: u64) -> Result<()> {
     let msg = SbiMessage::CoveInterrupt(TsmConvertImsic { imsic_addr });
     // The caller must guarantee that they won't access the page at `imsic_addr`.
-    ecall_send(&msg)?;
+    ecall_send::<()>(&msg)?;
     Ok(())
 }
 
@@ -49,7 +49,7 @@ pub fn reclaim_imsic(imsic_addr: u64) -> Result<()> {
     let msg = SbiMessage::CoveInterrupt(TsmReclaimImsic { imsic_addr });
     // Safety: The referenced page is made available again, which is safe since it hasn't been
     // accessible since conversion.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -62,7 +62,7 @@ pub fn bind_vcpu_imsic(tvm_id: u64, vcpu_id: u64, imsic_mask: u64) -> Result<()>
         imsic_mask,
     });
     // Safety: The specified guest interrupt files must have already been inaccessible.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -72,7 +72,7 @@ pub fn bind_vcpu_imsic(tvm_id: u64, vcpu_id: u64, imsic_mask: u64) -> Result<()>
 pub fn unbind_vcpu_imsic_begin(tvm_id: u64, vcpu_id: u64) -> Result<()> {
     let msg = SbiMessage::CoveInterrupt(TvmCpuUnbindImsicBegin { tvm_id, vcpu_id });
     // Safety: Does not access host memory.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -82,7 +82,7 @@ pub fn unbind_vcpu_imsic_begin(tvm_id: u64, vcpu_id: u64) -> Result<()> {
 pub fn unbind_vcpu_imsic_end(tvm_id: u64, vcpu_id: u64) -> Result<()> {
     let msg = SbiMessage::CoveInterrupt(TvmCpuUnbindImsicEnd { tvm_id, vcpu_id });
     // Safety: Does not access host memory.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -95,7 +95,7 @@ pub fn inject_external_interrupt(tvm_id: u64, vcpu_id: u64, interrupt_id: u64) -
         interrupt_id,
     });
     // Safety: Does not access host memory.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -110,7 +110,7 @@ pub fn rebind_vcpu_imsic_begin(tvm_id: u64, vcpu_id: u64, imsic_mask: u64) -> Re
         imsic_mask,
     });
     // Safety: The specified guest interrupt files must have already been inaccessible.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -120,7 +120,7 @@ pub fn rebind_vcpu_imsic_begin(tvm_id: u64, vcpu_id: u64, imsic_mask: u64) -> Re
 pub fn rebind_vcpu_imsic_clone(tvm_id: u64, vcpu_id: u64) -> Result<()> {
     let msg = SbiMessage::CoveInterrupt(TvmCpuRebindImsicClone { tvm_id, vcpu_id });
     // Safety: Does not access host memory.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -129,6 +129,6 @@ pub fn rebind_vcpu_imsic_clone(tvm_id: u64, vcpu_id: u64) -> Result<()> {
 pub fn rebind_vcpu_imsic_end(tvm_id: u64, vcpu_id: u64) -> Result<()> {
     let msg = SbiMessage::CoveInterrupt(TvmCpuRebindImsicEnd { tvm_id, vcpu_id });
     // Safety: Does not access host memory.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }

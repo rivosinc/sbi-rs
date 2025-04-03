@@ -81,7 +81,7 @@ fn _assert_scratch_size() {
 pub fn tsm_initiate_fence() -> Result<()> {
     let msg = SbiMessage::CoveHost(TsmInitiateFence);
     // Safety: TsmInitiateFence doesn't read or write any memory we have access to.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -89,7 +89,7 @@ pub fn tsm_initiate_fence() -> Result<()> {
 pub fn tsm_local_fence() -> Result<()> {
     let msg = SbiMessage::CoveHost(TsmLocalFence);
     // Safety: TsmLocalFence doesn't read or write any memory we have access to.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -97,7 +97,7 @@ pub fn tsm_local_fence() -> Result<()> {
 pub fn tvm_initiate_fence(vmid: u64) -> Result<()> {
     let msg = SbiMessage::CoveHost(TvmInitiateFence { guest_id: vmid });
     // Safety: TvmInitiateFence doesn't read or write any memory we have access to.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -133,7 +133,7 @@ pub unsafe fn convert_pages(addr: u64, num_pages: u64) -> Result<()> {
     });
     // Safety: The passed-in pages are unmapped and we do not access them again until they're
     // reclaimed.
-    ecall_send(&msg)?;
+    ecall_send::<()>(&msg)?;
     Ok(())
 }
 
@@ -145,7 +145,7 @@ pub fn reclaim_pages(addr: u64, num_pages: u64) -> Result<()> {
     });
     // Safety: The referenced pages are made accessible again, which is safe since we haven't
     // done anything with them since they were converted.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -181,7 +181,7 @@ pub fn tvm_finalize(vmid: u64, entry_sepc: u64, entry_arg: u64) -> Result<()> {
         entry_arg,
     });
     // Safety: `Finalize` doesn't touch memory.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -189,7 +189,7 @@ pub fn tvm_finalize(vmid: u64, entry_sepc: u64, entry_arg: u64) -> Result<()> {
 pub fn tvm_destroy(vmid: u64) -> Result<()> {
     let msg = SbiMessage::CoveHost(TvmDestroy { guest_id: vmid });
     // Safety: destroying a VM doesn't write to memory that's accessible from the host.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -212,7 +212,7 @@ pub fn add_page_table_pages(vmid: u64, page_addr: u64, num_pages: u64) -> Result
     });
     // Safety: `AddPageTablePages` only accesses pages that have been previously converted. Passing
     // non-converted memory will result in a failure and not touch the memory.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -229,7 +229,7 @@ pub fn add_vcpu(vmid: u64, vcpu_id: u64, state_page_addr: u64) -> Result<()> {
     });
     // Safety: TvmCpuCreate only accesses pages that have been converted and thus must already be
     // inaccessible to the calling program.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -241,7 +241,7 @@ pub fn add_memory_region(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
         len,
     });
     // Safety: `TvmAddMemoryRegion` doesn't access our memory at all.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -273,7 +273,7 @@ pub fn add_measured_pages(
     // Safety: `TvmAddMeasuredPages` only writes pages that have already been converted, and only
     // reads the pages pointed to by `src_addr`. This is safe because those pages are owned by the
     // borrowed slice and safe to read from.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -294,7 +294,7 @@ pub fn add_zero_pages(
         guest_addr,
     });
     // Safety: `TvmAddZeroPages` only touches pages that we've already converted.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -318,7 +318,7 @@ pub unsafe fn add_shared_pages(
         num_pages,
         guest_addr,
     });
-    ecall_send(&msg)?;
+    ecall_send::<()>(&msg)?;
     Ok(())
 }
 
@@ -330,7 +330,7 @@ pub fn block_pages(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
         len,
     });
     // Safety: The pages belong to the guest's address space.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -343,7 +343,7 @@ pub fn unblock_pages(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
         len,
     });
     // Safety: The pages belong to the guest's address space.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -355,7 +355,7 @@ pub fn promote_page(vmid: u64, guest_addr: u64, page_type: TsmPageType) -> Resul
         page_type,
     });
     // Safety: The pages belong to the guest's address space.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -367,7 +367,7 @@ pub fn demote_page(vmid: u64, guest_addr: u64, page_type: TsmPageType) -> Result
         page_type,
     });
     // Safety: The pages belong to the guest's address space.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -379,6 +379,6 @@ pub fn remove_pages(vmid: u64, guest_addr: u64, len: u64) -> Result<()> {
         len,
     });
     // Safety: The pages belong to the guest's address space.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }

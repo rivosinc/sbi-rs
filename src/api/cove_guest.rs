@@ -13,7 +13,7 @@ pub fn add_emulated_mmio_region(addr: u64, len: u64) -> Result<()> {
     // Safety: AddMmioRegion does not directly access our memory. The specified range of
     // address space must have been previously inaccessible for the call to succeed, after which
     // accesses to that range have well-defined behavior.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -24,7 +24,7 @@ pub fn remove_emulated_mmio_region(addr: u64, len: u64) -> Result<()> {
     // Safety: RemoveMmioRegion does not directly access the memory. The specified range of
     // address space must have been previously registered for MMIO using `AddMmioRegion` for
     // this call to succeed.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -38,7 +38,7 @@ pub fn remove_emulated_mmio_region(addr: u64, len: u64) -> Result<()> {
 /// the host.
 pub unsafe fn share_memory(addr: u64, len: u64) -> Result<()> {
     let msg = SbiMessage::CoveGuest(ShareMemory { addr, len });
-    ecall_send(&msg)?;
+    ecall_send::<()>(&msg)?;
     Ok(())
 }
 
@@ -52,7 +52,7 @@ pub unsafe fn share_memory(addr: u64, len: u64) -> Result<()> {
 /// confidential to the calling VM.
 pub unsafe fn unshare_memory(addr: u64, len: u64) -> Result<()> {
     let msg = SbiMessage::CoveGuest(UnshareMemory { addr, len });
-    ecall_send(&msg)?;
+    ecall_send::<()>(&msg)?;
     Ok(())
 }
 
@@ -60,7 +60,7 @@ pub unsafe fn unshare_memory(addr: u64, len: u64) -> Result<()> {
 pub fn allow_external_interrupt(id: u64) -> Result<()> {
     let msg = SbiMessage::CoveGuest(AllowExternalInterrupt { id: id as i64 });
     // Safety: AllowExternalInterrupt doesn't access our memory.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -68,7 +68,7 @@ pub fn allow_external_interrupt(id: u64) -> Result<()> {
 pub fn allow_all_external_interrupts() -> Result<()> {
     let msg = SbiMessage::CoveGuest(AllowExternalInterrupt { id: -1 });
     // Safety: AllowExternalInterrupt doesn't access our memory.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -76,7 +76,7 @@ pub fn allow_all_external_interrupts() -> Result<()> {
 pub fn deny_external_interrupt(id: u64) -> Result<()> {
     let msg = SbiMessage::CoveGuest(DenyExternalInterrupt { id: id as i64 });
     // Safety: DenyExternalInterrupt doesn't access our memory.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -84,6 +84,6 @@ pub fn deny_external_interrupt(id: u64) -> Result<()> {
 pub fn deny_all_external_interrupts() -> Result<()> {
     let msg = SbiMessage::CoveGuest(DenyExternalInterrupt { id: -1 });
     // Safety: DenyExternalInterrupt doesn't access our memory.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
