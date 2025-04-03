@@ -10,7 +10,6 @@ rust_library(
     name = "sbi-rs",
     srcs = glob(["src/**/*.rs"]),
     crate_root = "src/sbi.rs",
-    proc_macro_deps = ["@sbi-index//:enum_dispatch"],
     deps = [
         "@sbi-index//:arrayvec",
         "@sbi-index//:flagset",

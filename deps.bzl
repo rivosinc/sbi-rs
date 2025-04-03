@@ -19,9 +19,6 @@ def sbi_dependencies():
                 version = "0.7.2",
                 default_features = False,
             ),
-            "enum_dispatch": crate.spec(
-                version = "0.3.8",
-            ),
             "flagset": crate.spec(
                 version = "0.4.3",
             ),
