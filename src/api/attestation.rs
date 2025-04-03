@@ -21,7 +21,7 @@ pub fn get_capabilities() -> Result<AttestationCapabilities> {
     });
 
     // Safety: &caps is the single reference to a variable defined in this scope.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
 
     Ok(caps)
 }
@@ -90,7 +90,7 @@ pub fn extend_measurement(digest: &[u8], index: usize) -> Result<()> {
     // Safety: ExtendMeasurement only reads the pages pointed to by `digest`.
     // This is safe because they're owned by the borrowed slice passed as an
     // argument to this function.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
 
     Ok(())
 }

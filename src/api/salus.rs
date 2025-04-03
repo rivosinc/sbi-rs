@@ -20,6 +20,6 @@ pub unsafe fn test_memcpy(to: *mut u8, from: *const u8, len: u64) -> Result<()> 
         len,
     });
     let msg = SalusSbiMessage::SalusTest(function).into();
-    ecall_send(&msg)?;
+    ecall_send::<()>(&msg)?;
     Ok(())
 }

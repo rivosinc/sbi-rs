@@ -56,7 +56,7 @@ pub fn start_counters(
         initial_value,
     });
     // Safety: PmuFunction does not touch memory.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -72,7 +72,7 @@ pub fn stop_counters(
         stop_flags,
     });
     // Safety: PmuFunction does not touch memory.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 

@@ -10,7 +10,7 @@ use crate::{ResetReason, ResetType};
 pub fn reset(reset_type: ResetType, reason: ResetReason) -> Result<()> {
     let msg = SbiMessage::Reset(ResetFunction::Reset { reset_type, reason });
     // Safety: Reset terminates this VM.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
 
@@ -18,6 +18,6 @@ pub fn reset(reset_type: ResetType, reason: ResetReason) -> Result<()> {
 pub fn shutdown() -> Result<()> {
     let msg = SbiMessage::Reset(ResetFunction::shutdown());
     // Safety: This ecall doesn't touch memory and will never return.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }

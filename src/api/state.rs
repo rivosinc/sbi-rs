@@ -19,6 +19,6 @@ pub unsafe fn hart_start(hart_id: u64, start_addr: u64, opaque: u64) -> Result<(
     });
     // Safety: Passes one pointer to SBI, that pointer is guaranteed by the linker to be the
     // code to start secondary CPUs.
-    ecall_send(&msg)?;
+    ecall_send::<()>(&msg)?;
     Ok(())
 }

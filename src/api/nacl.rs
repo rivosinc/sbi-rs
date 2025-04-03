@@ -21,7 +21,7 @@ pub unsafe fn register_shmem(shmem_ptr: *mut NaclShmem) -> Result<()> {
     let msg = SbiMessage::Nacl(SetShmem {
         shmem_addr: shmem_ptr as u64,
     });
-    ecall_send(&msg)?;
+    ecall_send::<()>(&msg)?;
     Ok(())
 }
 
@@ -31,6 +31,6 @@ pub fn unregister_shmem() -> Result<()> {
         shmem_addr: u64::MAX,
     });
     // Safety: Doesn't access host memory.
-    unsafe { ecall_send(&msg) }?;
+    unsafe { ecall_send::<()>(&msg) }?;
     Ok(())
 }
