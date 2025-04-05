@@ -17,7 +17,7 @@ pub struct TsmShmemAreaRef<'a> {
     _lifetime: PhantomData<&'a NaclShmem>,
 }
 
-impl<'a> TsmShmemAreaRef<'a> {
+impl TsmShmemAreaRef<'_> {
     /// Creates a new `TsmShmemAreaRef` from a raw pointer to a `NaclShmem`.
     ///
     /// # Safety
