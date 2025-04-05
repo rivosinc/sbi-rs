@@ -34,9 +34,9 @@ pub fn get_capabilities() -> Result<AttestationCapabilities> {
 ///
 /// * `cert_request` - The [Certificate Signing Request](https://datatracker.ietf.org/doc/html/rfc2986) buffer.
 /// * `request_data` - A data blob that will be included in the generated
-///                    certificate, as [UserNotice](https://datatracker.ietf.org/doc/html/rfc2986)
-///                    X.509 certificate extension. This is typically used to
-///                    pass a cryptographic nonce.
+///   certificate, as [UserNotice](https://datatracker.ietf.org/doc/html/rfc2986)
+///   X.509 certificate extension. This is typically used to
+///   pass a cryptographic nonce.
 /// * `evidence_format` - The format of the attestation evidence as defined by [`EvidenceFormat`](crate::EvidenceFormat).
 pub fn get_evidence(
     cert_request: &[u8],

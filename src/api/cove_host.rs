@@ -154,10 +154,10 @@ pub fn reclaim_pages(addr: u64, num_pages: u64) -> Result<()> {
 /// # Params:
 ///
 /// - tvm_page_directory_addr: The base physical address of the 16kB confidential memory region that
-/// should be used for the TVM's page directory. Must be 16kB-aligned.
+///   should be used for the TVM's page directory. Must be 16kB-aligned.
 ///
 /// - tvm_state_addr: The base physical address of the confidential memory region to be used to hold
-/// the TVM's global state. Must be page-aligned and `TsmInfo::tvm_state_pages` pages in length.
+///   the TVM's global state. Must be page-aligned and `TsmInfo::tvm_state_pages` pages in length.
 pub fn tvm_create(tvm_page_directory_addr: u64, tvm_state_addr: u64) -> Result<u64> {
     let tvm_create_params = TvmCreateParams {
         tvm_page_directory_addr,

@@ -351,6 +351,7 @@ pub enum CoveHostFunction {
     ///   - The page is currently marked present in the TVM’s page table.
     ///   - The page is in either the “Mapped” state and uniquely owned by the TVM, or in
     ///     the “Shared” state and owned by the host.
+    ///
     /// After verifying these pre-conditions are met, the TSM:
     ///   - Invalidates the page.
     ///   - Places the page in the “Blocked” state (if “Mapped”) or “BlockedShared” state
@@ -379,6 +380,7 @@ pub enum CoveHostFunction {
     ///   - The page is currently marked invalid in the TVM’s page table.
     ///   - The page is in either the “Blocked” state and uniquely owned by the TVM, or in
     ///     the “BlockedShared” state and owned by the host.
+    ///
     /// After verifying these pre-conditions are met, the TSM:
     ///   - Marks the page as present.
     ///   - Places the page in the “Mapped” state (if “Blocked”) or “Shared” state
