@@ -6,9 +6,10 @@ use crate::{ecall_send, DebugConsoleFunction, Result, SbiMessage};
 
 /// Prints the given string in a platfrom-dependent way.
 pub fn console_puts(chars: &[u8]) -> Result<()> {
-    let msg = SbiMessage::DebugConsole(DebugConsoleFunction::PutString {
+    let msg = SbiMessage::DebugConsole(DebugConsoleFunction::Write {
         len: chars.len() as u64,
         addr: chars.as_ptr() as u64,
+        addr_hi: 0,
     });
 
     // Safety: The sbi implementation is trusted not to write memory when printing to the console.
