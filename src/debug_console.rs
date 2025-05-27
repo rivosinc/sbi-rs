@@ -101,4 +101,12 @@ impl SbiFunction for DebugConsoleFunction {
             DebugConsoleFunction::WriteByte { byte: _ } => 0,
         }
     }
+
+    fn a6(&self) -> u64 {
+        match self {
+            DebugConsoleFunction::Write { .. } => 0,
+            DebugConsoleFunction::Read { .. } => 1,
+            DebugConsoleFunction::WriteByte { .. } => 2,
+        }
+    }
 }
